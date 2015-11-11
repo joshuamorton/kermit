@@ -1,11 +1,9 @@
-import courses
 import graphviz as gv
+import courses
 from Course import Course
 
 
 import pprint
-pprint.pprint(Course.all_courses.keys()[22])
-print Course.all_courses[Course.all_courses.keys()[22]].prerequisites
 
 if __name__ == "__main__":
     graph = gv.Digraph("GT Courses")

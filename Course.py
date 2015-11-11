@@ -39,6 +39,15 @@ class Or(object):
         In addition to setting the name and components, it constructs a course
             object for use when rendering the graph of courses
         """
+
+        """
+        In the uncommon but possible case where a class has an And of
+            prerequisites, but one of those prerequisites is an Or, and that Or
+            itself contains another And, there's special proceessing that needs
+            to be done. Namely, for rendering as a graph on screen, we need to
+            create a virtual course named "AND" that is a child of the "OR", so
+            that the graph is human-parsable.
+        """
         newcomponents = []
         for course in components:
             if isinstance(course, And):
@@ -75,6 +84,18 @@ class Or(object):
 
 
 class Course(object):
+    """
+    Represents a course
+    
+    name - the name of the course, this must be unique
+    hours - number of credit hours
+    prerequisites - a set of prerequisites, must be an And object or None by
+        default
+    corequisites - a set of corequisite courses, must be an And object or None
+        by default
+    description - a short string, either the course name, or "AND" or "OR", for
+        rendering the graph on screen
+    """
     all_courses = dict()
 
     def __init__(self, name, hours, prerequisites=None, corequisites=None,
@@ -88,11 +109,13 @@ class Course(object):
         self.corequisites = corequisites or frozenset()
         self.height = None  # chain of prerequisites
         self.hours = None  # class hours
+
         if prerequisites is None:
             self.height = 0
         else:
             self.height = max(req.height for req in prerequisites) + 1
         self.name = name
+
         if description is None:
             self.description = self.name
         else:
