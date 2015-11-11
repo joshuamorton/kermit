@@ -60,11 +60,11 @@ class Or(object):
                 newcomponents.append(course)
 
         self.courses = frozenset(newcomponents)
-        self.course = None
 
         if self.courses not in Or.all_ors:
             Or.all_ors[self.courses] = Course(
-                " | ".join(c.name for c in self.courses), 0,
+                " | ".join(c.name for c in sorted(self.courses,
+                           key=lambda x: x.name)), 0,
                 prerequisites=newcomponents, description="OR")
 
         self.course = Or.all_ors[self.courses]
@@ -73,8 +73,8 @@ class Or(object):
         # contribute to the time it takes to complete
         # complete later course
 
-        def __iter__(self):
-            return self.courses.__iter__()
+    def __iter__(self):
+        return self.courses.__iter__()
 
     def __getattr__(self, key):
         try:
@@ -108,7 +108,7 @@ class Course(object):
             self.prerequisites = prerequisites
         self.corequisites = corequisites or frozenset()
         self.height = None  # chain of prerequisites
-        self.hours = None  # class hours
+        self.hours = hours  # class hours
 
         if prerequisites is None:
             self.height = 0
