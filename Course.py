@@ -79,9 +79,8 @@ class Or(object):
 
         self.course = Or.all_ors[self.courses]
         self.course.height -= 1
-        # the course created doesn't actually
-        # contribute to the time it takes to complete
-        # complete later course
+        # the course created doesn't actually contribute to the time it takes 
+        # to complete later course
 
     def __iter__(self):
         return self.courses.__iter__()
