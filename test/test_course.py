@@ -13,12 +13,14 @@ class Test_Course(unittest.TestCase):
     def test_instantiation(self):
         self.assertEqual(len(Course.all_courses), 1)
         self.assertEqual(Course.all_courses[self.course.name], self.course)
-        self.assertEqual(self.course.prerequisites, frozenset())
+        self.assertEqual(type(self.course.prerequisites), type(And()))
         self.assertEqual(self.course.name, "CS1301")
         self.assertEqual(self.course.hours, 3)
         self.assertEqual(self.course.description,
                          "An Introductory python course")
         self.assertEqual(str(self.course), 
+                         "CS1301 (An Introductory python course)")
+        self.assertEqual(self.course.__repr__(),
                          "CS1301 (An Introductory python course)")
 
     def test_no_name(self):
@@ -50,3 +52,26 @@ class Test_Course(unittest.TestCase):
         self.assertEqual(my_or.hours, 0)
         self.assertEqual(my_or.height, 0)
 
+    def test_complex_and_or_course_consistency(self):
+        """
+        A weird situation involving nested Ands and Ors that can cause problems
+
+        Catches a wonky situation where an And is contained within an Or is
+        contained by an And, and you get extra courses appearing out of nowhere
+        on the rendered graph
+        """
+        CS0 = Course("0", 1)
+        CS1 = Course("1", 1)
+        CS2 = Course("2", 1)
+        CS3 = Course("3", 1)
+        CS4 = Course("4", 1, And(CS3, Or(And(CS0, CS1), CS2)))
+        CS5 = Course("5", 1, And(Or(CS2, And(CS0, CS1)), CS3))
+        self.courses = [CS0, CS1, CS2, CS3, CS4, CS5]
+        self.assertEqual(CS5.prerequisites.courses, CS4.prerequisites.courses)
+
+    def test_corequisites(self):
+        CS1 = Course("1", 1)
+        CS12 = Course("2", 2, corequisites=And(CS1))
+
+        self.assertEqual(CS12.corequisites, And(CS1))
+        self.assertEqual(CS1.corequisites, And(CS12))
