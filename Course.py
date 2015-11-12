@@ -17,8 +17,17 @@ class And(object):
         """
         self.courses = frozenset(components)
 
+    def __eq__(self, other):
+        return self.courses == other.courses
+
+    def __hash__(self):
+        return hash(self.courses)
+
     def __iter__(self):
         return self.courses.__iter__()
+
+    def __bool__(self):
+        return bool(len(self.courses))
 
 
 class Or(object):
@@ -52,9 +61,10 @@ class Or(object):
         for course in components:
             if isinstance(course, And):
                 newcomponents.append(Course("("+" & ".join(c.name for c in
-                                     course.courses)+")", 0,
-                                     prerequisites=course.courses,
-                                     description="AND"))
+                                                           course.courses)
+                                            + ")", 0,
+                                            prerequisites=course.courses,
+                                            description="AND"))
                 newcomponents[-1].height -= 1
             else:
                 newcomponents.append(course)
@@ -64,7 +74,7 @@ class Or(object):
         if self.courses not in Or.all_ors:
             Or.all_ors[self.courses] = Course(
                 " | ".join(c.name for c in sorted(self.courses,
-                           key=lambda x: x.name)), 0,
+                                                  key=lambda x: x.name)), 0,
                 prerequisites=newcomponents, description="OR")
 
         self.course = Or.all_ors[self.courses]
@@ -82,17 +92,26 @@ class Or(object):
         except AttributeError:
             return self.course.__getattribute__(key)
 
+    def __hash__(self):
+        return hash(self.course)
+
+    def __repr__(self):
+        return self.course.__repr__()
+
+    def __eq__(self, other):
+        return self.course == other.course 
+
 
 class Course(object):
     """
     Represents a course
-    
+
     name - the name of the course, this must be unique
     hours - number of credit hours
     prerequisites - a set of prerequisites, must be an And object or None by
         default
-    corequisites - a set of corequisite courses, must be an And object or None
-        by default
+    corequisites - a set of corequisite courses, must be an And object made up
+        of only or objects, or None by default
     description - a short string, either the course name, or "AND" or "OR", for
         rendering the graph on screen
     """
@@ -102,19 +121,20 @@ class Course(object):
                  description=None):
         """
         """
-        if prerequisites is None:
-            self.prerequisites = frozenset()
-        else:
-            self.prerequisites = prerequisites
-        self.corequisites = corequisites or frozenset()
+        self.name = name
+        self.prerequisites = prerequisites or And()
+        self.corequisites = corequisites or And()
+
+        for coreq in self.corequisites:
+            coreq.corequisites = And(self, *[co for co in coreq.corequisites])
+
         self.height = None  # chain of prerequisites
         self.hours = hours  # class hours
 
-        if prerequisites is None:
-            self.height = 0
+        if self.prerequisites:
+            self.height = max(req.height for req in self.prerequisites) + 1
         else:
-            self.height = max(req.height for req in prerequisites) + 1
-        self.name = name
+            self.height = 0
 
         if description is None:
             self.description = self.name
@@ -127,3 +147,9 @@ class Course(object):
 
     def __repr__(self):
         return self.__str__()
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __hash__(self):
+        return hash(self.name)
