@@ -60,7 +60,7 @@ class Or(object):
 
         self.course = Or.all_ors[self.courses]
         self.course.height -= 1
-        # the course created doesn't actually contribute to the time it takes 
+        # the course created doesn't actually contribute to the time it takes
         # to complete later course
 
     @staticmethod
@@ -102,7 +102,7 @@ class Or(object):
         return self.course.__repr__()
 
     def __eq__(self, other):
-        return self.course == other.course 
+        return self.course == other.course
 
 
 class Course(object):
