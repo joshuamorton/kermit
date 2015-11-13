@@ -49,26 +49,7 @@ class Or(object):
             object for use when rendering the graph of courses
         """
 
-        """
-        In the uncommon but possible case where a class has an And of
-            prerequisites, but one of those prerequisites is an Or, and that Or
-            itself contains another And, there's special proceessing that needs
-            to be done. Namely, for rendering as a graph on screen, we need to
-            create a virtual course named "AND" that is a child of the "OR", so
-            that the graph is human-parsable.
-        """
-        newcomponents = []
-        for course in components:
-            if isinstance(course, And):
-                newcomponents.append(Course("("+" & ".join(c.name for c in
-                                                           course.courses)
-                                            + ")", 0,
-                                            prerequisites=course.courses,
-                                            description="AND"))
-                newcomponents[-1].height -= 1
-            else:
-                newcomponents.append(course)
-
+        newcomponents = self._clean_components(components)
         self.courses = frozenset(newcomponents)
 
         if self.courses not in Or.all_ors:
@@ -81,6 +62,29 @@ class Or(object):
         self.course.height -= 1
         # the course created doesn't actually contribute to the time it takes 
         # to complete later course
+
+    @staticmethod
+    def _clean_components(components):
+        """
+        In the uncommon but possible case where a class has an And of
+        prerequisites, but one of those prerequisites is an Or, and that Or
+        itself contains another And, there's special proceessing that needs
+        to be done. Namely, for rendering as a graph on screen, we need to
+        create a virtual course named "AND" that is a child of the "OR", so
+        that the graph is human-parsable.
+        """
+        newcomponents = []
+        for course in components:
+            if isinstance(course, And):
+                newcomponents.append(Course("("+" & ".join(c.name for c in
+                                                           course.courses)
+                                            + ")", 0,
+                                            prerequisites=course.courses,
+                                            description="AND"))
+                newcomponents[-1].height -= 1
+            else:
+                newcomponents.append(course)
+        return newcomponents
 
     def __iter__(self):
         return self.courses.__iter__()
