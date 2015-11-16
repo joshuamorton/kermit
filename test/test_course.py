@@ -1,5 +1,5 @@
 import unittest
-from courses.Course import Course, And, Or
+from ..Course import Course, And, Or
 
 
 class Test_Course(unittest.TestCase):
